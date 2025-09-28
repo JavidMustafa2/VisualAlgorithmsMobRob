@@ -8,10 +8,12 @@ from pose_vector_to_transformation_matrix import \
 from project_points import project_points
 from undistort_image import undistort_image
 from undistort_image_vectorized import undistort_image_vectorized
+from load_camera_poses import load_camera_poses
 
 
 def main():
-    pass
+    
+    filepath = r'C:\Users\fmust\Downloads\VisAlgsMobRob\VisualAlgorithmsMobRob\exercise_01\data\poses.txt'
 
     # load camera poses
 
@@ -19,7 +21,7 @@ def main():
     # points expressed in the world frame to
     # points expressed in the camera frame
 
-    # TODO: Your code here
+    poses = load_camera_poses(filepath) #(x,y) np matrix
 
     # define 3D corner positions
     # [Nx3] matrix containing the corners of the checkerboard as 3D points
