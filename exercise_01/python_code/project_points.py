@@ -18,5 +18,5 @@ def project_points(points_3d: np.ndarray,
     Returns:
         projected_points: 2d points (2xN)
     """
-    pass
-    # TODO: Your code here
+
+

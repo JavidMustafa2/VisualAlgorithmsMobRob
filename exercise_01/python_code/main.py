@@ -9,42 +9,64 @@ from project_points import project_points
 from undistort_image import undistort_image
 from undistort_image_vectorized import undistort_image_vectorized
 from load_camera_poses import load_camera_poses
-
+from matplotlib import pyplot as plt
 
 def main():
     
-    filepath = r'C:\Users\fmust\Downloads\VisAlgsMobRob\VisualAlgorithmsMobRob\exercise_01\data\poses.txt'
-
+    poses_filepath = r'C:\Users\fmust\Downloads\VisAlgsMobRob\VisualAlgorithmsMobRob\exercise_01\data\poses.txt'
+    image_filepath = r'C:\Users\fmust\Downloads\VisAlgsMobRob\VisualAlgorithmsMobRob\exercise_01\data\images_undistorted\img_0001.jpg'
+    K_matrix_filepath = r'C:\Users\fmust\Downloads\VisAlgsMobRob\VisualAlgorithmsMobRob\exercise_01\data\K.txt'
     # load camera poses
 
     # each row i of matrix 'poses' contains the transformations that transforms
     # points expressed in the world frame to
     # points expressed in the camera frame
 
-    poses = load_camera_poses(filepath) #(x,y) np matrix
+    poses = load_camera_poses(poses_filepath) #(x,y) np matrix
 
     # define 3D corner positions
     # [Nx3] matrix containing the corners of the checkerboard as 3D points
     # (X,Y,Z), expressed in the world coordinate system
+    x = np.linspace(0,32,9)
+    y = np.linspace(0,20,6)
 
-    # TODO: Your code here
-
-    # load camera intrinsics
-    # TODO: Your code here
+    x,y = np.meshgrid(x,y)
+    
+    #getting corner positions and also appending ones for transformation matrix
+    xyzcoords = np.column_stack((x.ravel(),y.ravel(),np.zeros(6*9),np.ones(6*9)))
+   
+    
+    
+    #loading K matrix
+    with open(K_matrix_filepath, 'r') as file:
+        
+        K_matrix = np.genfromtxt(file)
+        
+    
 
     # load one image with a given index
-    # TODO: Your code here
+    # reading the image in grayscale
+    gray_image = cv2.imread(image_filepath,cv2.IMREAD_GRAYSCALE)
 
 
     # project the corners on the image
     # compute the 4x4 homogeneous transformation matrix that maps points
     # from the world to the camera coordinate frame
 
-    # TODO: Your code here
+    #transform matrix
+
+    matrix_transform = pose_vector_to_transformation_matrix(poses[0])
 
 
     # transform 3d points from world to current camera pose
-    # TODO: Your code here
+    world_xyz = xyzcoords
+    
+    camera_xyz = np.zeros(np.shape(world_xyz))
+    for i, coords in enumerate(world_xyz):
+        world_to_camera = np.transpose(np.matmul(matrix_transform,np.transpose(coords)))
+        camera_xyz[i] = world_to_camera
+
+    
 
     # undistort image with bilinear interpolation
     """ Remove this comment if you have completed the code until here
