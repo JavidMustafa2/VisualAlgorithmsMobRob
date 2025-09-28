@@ -1,4 +1,5 @@
 import numpy as np
+import cv2
 from vector_to_skew import vector_to_skew as skew
 
 def pose_vector_to_transformation_matrix(pose_vec: np.ndarray) -> np.ndarray:
@@ -13,9 +14,15 @@ def pose_vector_to_transformation_matrix(pose_vec: np.ndarray) -> np.ndarray:
     """
     rotations = pose_vec[:3]
     translations = np.transpose(np.take(pose_vec,[3,4,5]))
-    theta = np.linalg.norm(rotations)
-    unit_vector = np.transpose(rotations / theta)
-    rotation_matrix = np.eye(3) + np.sin(theta)*skew(unit_vector) + (1-np.cos(theta))*(skew(unit_vector)**2)
+    
+    # theta = np.linalg.norm(rotations)
+    # unit_vector = np.transpose(rotations / theta)
+    # rotation_matrix = np.eye(3) + np.sin(theta)*skew(unit_vector) + (1-np.cos(theta))*(skew(unit_vector)**2)
+
+    rotation_matrix, jacobian = cv2.Rodrigues(rotations) # the rodriguez application from cv2 returns a much more "perfect" rotation matrix
+    
+   
+  
     transformation_matrix = np.empty((4,4))
     transformation_matrix[:3, :3] = rotation_matrix
     transformation_matrix[:3, 3] = translations
