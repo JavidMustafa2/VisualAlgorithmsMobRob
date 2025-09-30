@@ -61,12 +61,22 @@ def main():
     # transform 3d points from world to current camera pose
     world_xyz = xyzcoords
     
-    camera_xyz = np.zeros(np.shape(world_xyz))
+    camera_xyz = np.zeros((54,3))
+    pixel_xyz = np.zeros((54,2))
+    copy = gray_image.copy()
     for i, coords in enumerate(world_xyz):
-        world_to_camera = np.transpose(np.matmul(matrix_transform,np.transpose(coords)))
-        camera_xyz[i] = world_to_camera
-
+        world_to_camera_to_pixel = np.transpose(K_matrix@matrix_transform@np.transpose(coords))
+     
+        camera_xyz[i] = world_to_camera_to_pixel
+        pixel_xyz[i] = np.array([camera_xyz[i][0]/camera_xyz[i][2],camera_xyz[i][1]/camera_xyz[i][2]])
     
+    for i in range(54):
+        center = tuple(np.round(pixel_xyz[i]).astype(int))
+        copy = cv2.circle(copy, center, 5, (100, 100, 255), 2)
+# Display the image
+    cv2.imshow('Image with Circle', copy)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
     # undistort image with bilinear interpolation
     """ Remove this comment if you have completed the code until here

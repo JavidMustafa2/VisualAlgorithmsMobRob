@@ -23,10 +23,10 @@ def pose_vector_to_transformation_matrix(pose_vec: np.ndarray) -> np.ndarray:
     
    
   
-    transformation_matrix = np.empty((4,4))
+    transformation_matrix = np.empty((3,4))
     transformation_matrix[:3, :3] = rotation_matrix
     transformation_matrix[:3, 3] = translations
-    transformation_matrix[3, :] = [0,0,0,1]
+
     
     return transformation_matrix
 
