@@ -41,14 +41,14 @@ def main():
     y = np.linspace(0,0.20,6)
     z = np.zeros(6*9)
     vertices = np.array([
-    [0, 0, 0],  # 0
-    [1, 0, 0],  # 1
-    [1, 1, 0],  # 2
-    [0, 1, 0],  # 3
-    [0, 0, 1],  # 4
-    [1, 0, 1],  # 5
-    [1, 1, 1],  # 6
-    [0, 1, 1],  # 7
+    [0, 0, 0],  
+    [1, 0, 0],  
+    [1, 1, 0], 
+    [0, 1, 0],   
+    [0, 0, 1],  
+    [1, 0, 1],  
+    [1, 1, 1],   
+    [0, 1, 1],  
 ])
     def cube(side_length=0.16, starting_x =0.10,starting_y=0.10,staring_z=0.0):
        
@@ -138,11 +138,10 @@ def main():
 
         copy = draw_cube(cube_pixel_xyz,copy)
 
-    # Display the image
-            # Display (optional)
+   
         cv2.imshow("Cube Overlay", copy)
-        key = cv2.waitKey(50)  # wait 100 ms between images
-        if key == 27:  # press Esc to exit early
+        key = cv2.waitKey(33) 
+        if key == 27: 
             break
 
     # undistort image with bilinear interpolation
