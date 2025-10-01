@@ -27,8 +27,8 @@ def main():
     # define 3D corner positions
     # [Nx3] matrix containing the corners of the checkerboard as 3D points
     # (X,Y,Z), expressed in the world coordinate system
-    x = np.linspace(0,32,9)
-    y = np.linspace(0,20,6)
+    x = np.linspace(0,0.32,9)
+    y = np.linspace(0,0.20,6)
 
     x,y = np.meshgrid(x,y)
     
@@ -46,7 +46,7 @@ def main():
 
     # load one image with a given index
     # reading the image in grayscale
-    gray_image = cv2.imread(image_filepath,cv2.IMREAD_GRAYSCALE)
+    gray_image = cv2.imread(image_filepath)
 
 
     # project the corners on the image
@@ -72,7 +72,7 @@ def main():
     
     for i in range(54):
         center = tuple(np.round(pixel_xyz[i]).astype(int))
-        copy = cv2.circle(copy, center, 5, (100, 100, 255), 2)
+        copy = cv2.circle(copy, center, 5, (0, 0, 255), 2)
 # Display the image
     cv2.imshow('Image with Circle', copy)
     cv2.waitKey(0)
