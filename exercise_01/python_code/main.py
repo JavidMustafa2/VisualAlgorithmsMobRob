@@ -2,7 +2,8 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-
+import glob
+import os
 from pose_vector_to_transformation_matrix import \
     pose_vector_to_transformation_matrix
 from project_points import project_points
@@ -12,9 +13,18 @@ from load_camera_poses import load_camera_poses
 from matplotlib import pyplot as plt
 
 def main():
-    
+
+
+# Folder containing images
+    image_folder = r"C:\Users\fmust\Downloads\VisAlgsMobRob\VisualAlgorithmsMobRob\exercise_01\data\images"
+
+    # Get list of all jpg images in the folder, sorted
+    image_paths = sorted(glob.glob(os.path.join(image_folder, "*.jpg")))
+
+    print(f"Found {len(image_paths)} images.")
+
     poses_filepath = r'C:\Users\fmust\Downloads\VisAlgsMobRob\VisualAlgorithmsMobRob\exercise_01\data\poses.txt'
-    image_filepath = r'C:\Users\fmust\Downloads\VisAlgsMobRob\VisualAlgorithmsMobRob\exercise_01\data\images_undistorted\img_0001.jpg'
+  
     K_matrix_filepath = r'C:\Users\fmust\Downloads\VisAlgsMobRob\VisualAlgorithmsMobRob\exercise_01\data\K.txt'
     # load camera poses
 
@@ -83,54 +93,57 @@ def main():
 
     # load one image with a given index
     # reading the image in grayscale
-    gray_image = cv2.imread(image_filepath)
+    for i, image_filepath in enumerate(image_paths):
+        gray_image = cv2.imread(image_filepath)
 
 
-    # project the corners on the image
-    # compute the 4x4 homogeneous transformation matrix that maps points
-    # from the world to the camera coordinate frame
+        # project the corners on the image
+        # compute the 4x4 homogeneous transformation matrix that maps points
+        # from the world to the camera coordinate frame
 
-    #transform matrix
+        #transform matrix
 
-    matrix_transform = pose_vector_to_transformation_matrix(poses[0])
+        matrix_transform = pose_vector_to_transformation_matrix(poses[i])
 
 
-    # transform 3d points from world to current camera pose
-    world_xyz = xyzcoords
+        # transform 3d points from world to current camera pose
+        world_xyz = xyzcoords
 
-    camera_xyz = np.zeros((54,3))
-    pixel_xyz = np.zeros((54,2))
-    cube_camera_xyz = np.zeros((8,3))
-    cube_pixel_xyz = np.zeros((8,2))
-    copy = gray_image.copy()
-    for i, coords in enumerate(world_xyz):
-        world_to_camera_to_pixel = np.transpose(K_matrix@matrix_transform@np.transpose(coords))
-     
-        camera_xyz[i] = world_to_camera_to_pixel
-        pixel_xyz[i] = np.array([camera_xyz[i][0]/camera_xyz[i][2],camera_xyz[i][1]/camera_xyz[i][2]])
+        camera_xyz = np.zeros((54,3))
+        pixel_xyz = np.zeros((54,2))
+        cube_camera_xyz = np.zeros((8,3))
+        cube_pixel_xyz = np.zeros((8,2))
+        copy = gray_image.copy()
+        for i, coords in enumerate(world_xyz):
+            world_to_camera_to_pixel = np.transpose(K_matrix@matrix_transform@np.transpose(coords))
+        
+            camera_xyz[i] = world_to_camera_to_pixel
+            pixel_xyz[i] = np.array([camera_xyz[i][0]/camera_xyz[i][2],camera_xyz[i][1]/camera_xyz[i][2]])
+        
+        cubexyz = cube(0.08,0.08,0.08,0)
+        
+        for i,coords in enumerate(cubexyz):
+            cube_world_to_camera_to_pixel = np.transpose(K_matrix@matrix_transform@np.transpose(coords))
+        
+            cube_camera_xyz[i] = cube_world_to_camera_to_pixel
+            cube_pixel_xyz[i] = np.array([cube_camera_xyz[i][0]/cube_camera_xyz[i][2],cube_camera_xyz[i][1]/cube_camera_xyz[i][2]])
     
-    cubexyz = cube(0.08,0.08,0.08,0)
-    
-    for i,coords in enumerate(cubexyz):
-        cube_world_to_camera_to_pixel = np.transpose(K_matrix@matrix_transform@np.transpose(coords))
-     
-        cube_camera_xyz[i] = cube_world_to_camera_to_pixel
-        cube_pixel_xyz[i] = np.array([cube_camera_xyz[i][0]/cube_camera_xyz[i][2],cube_camera_xyz[i][1]/cube_camera_xyz[i][2]])
- 
-    cube_pixel_xyz = np.round(cube_pixel_xyz).astype(np.int32) 
+        cube_pixel_xyz = np.round(cube_pixel_xyz).astype(np.int32) 
 
-    for i in range(54):
-        center = tuple(np.round(pixel_xyz[i]).astype(int))
-        print(center)
-        copy = cv2.circle(copy, center, 5, (0, 0, 255), 2)
+        for i in range(54):
+            center = tuple(np.round(pixel_xyz[i]).astype(int))
+        
+            copy = cv2.circle(copy, center, 5, (0, 0, 255), 2)
 
 
-    copy = draw_cube(cube_pixel_xyz,copy)
+        copy = draw_cube(cube_pixel_xyz,copy)
 
-# Display the image
-    cv2.imshow('Image with Circle and cube', copy)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # Display the image
+            # Display (optional)
+        cv2.imshow("Cube Overlay", copy)
+        key = cv2.waitKey(50)  # wait 100 ms between images
+        if key == 27:  # press Esc to exit early
+            break
 
     # undistort image with bilinear interpolation
     """ Remove this comment if you have completed the code until here
