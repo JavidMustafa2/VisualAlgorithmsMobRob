@@ -29,12 +29,49 @@ def main():
     # (X,Y,Z), expressed in the world coordinate system
     x = np.linspace(0,0.32,9)
     y = np.linspace(0,0.20,6)
+    z = np.zeros(6*9)
+    vertices = np.array([
+    [0, 0, 0],  # 0
+    [1, 0, 0],  # 1
+    [1, 1, 0],  # 2
+    [0, 1, 0],  # 3
+    [0, 0, 1],  # 4
+    [1, 0, 1],  # 5
+    [1, 1, 1],  # 6
+    [0, 1, 1],  # 7
+])
+    def cube(side_length=0.16, starting_x =0.10,starting_y=0.10,staring_z=0.0):
+       
+        cube_matrix = np.array([[starting_x,starting_y,staring_z,1],
+                            [starting_x+side_length,starting_y,staring_z,1],
+                            [starting_x+side_length,starting_y+side_length,staring_z,1],
+                            [starting_x,starting_y+side_length,staring_z,1],
+                            [starting_x,starting_y,staring_z-side_length,1],
+                            [starting_x+side_length,starting_y,staring_z-side_length,1],
+                            [starting_x+side_length,starting_y+side_length,staring_z-side_length,1],
+                            [starting_x,starting_y+side_length,staring_z-side_length,1]])
+        return cube_matrix
+    def draw_cube(cube_pixel_coords,image):
+        edges = [
+                    (0, 1), (1, 2), (2, 3), (3, 0),  
+                    (4, 5), (5, 6), (6, 7), (7, 4),  
+                    (0, 4), (1, 5), (2, 6), (3, 7)   
+                ]
+        for i, j in edges:
+            pt1 = tuple(cube_pixel_coords[i])  
+            pt2 = tuple(cube_pixel_coords[j])
+            image = cv2.line(image, pt1, pt2, (0, 0, 255), 2)
+        return image
+  
 
+    
+    
     x,y = np.meshgrid(x,y)
     
     #getting corner positions and also appending ones for transformation matrix
-    xyzcoords = np.column_stack((x.ravel(),y.ravel(),np.zeros(6*9),np.ones(6*9)))
-   
+    xyzcoords = np.column_stack((x.ravel(),y.ravel(),z.ravel(),np.ones(6*9)))
+    
+  
     
     
     #loading K matrix
@@ -60,9 +97,11 @@ def main():
 
     # transform 3d points from world to current camera pose
     world_xyz = xyzcoords
-    
+
     camera_xyz = np.zeros((54,3))
     pixel_xyz = np.zeros((54,2))
+    cube_camera_xyz = np.zeros((8,3))
+    cube_pixel_xyz = np.zeros((8,2))
     copy = gray_image.copy()
     for i, coords in enumerate(world_xyz):
         world_to_camera_to_pixel = np.transpose(K_matrix@matrix_transform@np.transpose(coords))
@@ -70,11 +109,26 @@ def main():
         camera_xyz[i] = world_to_camera_to_pixel
         pixel_xyz[i] = np.array([camera_xyz[i][0]/camera_xyz[i][2],camera_xyz[i][1]/camera_xyz[i][2]])
     
+    cubexyz = cube(0.08,0.08,0.08,0)
+    
+    for i,coords in enumerate(cubexyz):
+        cube_world_to_camera_to_pixel = np.transpose(K_matrix@matrix_transform@np.transpose(coords))
+     
+        cube_camera_xyz[i] = cube_world_to_camera_to_pixel
+        cube_pixel_xyz[i] = np.array([cube_camera_xyz[i][0]/cube_camera_xyz[i][2],cube_camera_xyz[i][1]/cube_camera_xyz[i][2]])
+ 
+    cube_pixel_xyz = np.round(cube_pixel_xyz).astype(np.int32) 
+
     for i in range(54):
         center = tuple(np.round(pixel_xyz[i]).astype(int))
+        print(center)
         copy = cv2.circle(copy, center, 5, (0, 0, 255), 2)
+
+
+    copy = draw_cube(cube_pixel_xyz,copy)
+
 # Display the image
-    cv2.imshow('Image with Circle', copy)
+    cv2.imshow('Image with Circle and cube', copy)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
