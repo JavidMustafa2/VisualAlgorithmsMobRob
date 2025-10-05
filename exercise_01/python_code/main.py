@@ -31,7 +31,7 @@ def main():
     # each row i of matrix 'poses' contains the transformations that transforms
     # points expressed in the world frame to
     # points expressed in the camera frame
-
+    D_filepath = r'C:\Users\fmust\Downloads\VisAlgsMobRob\VisualAlgorithmsMobRob\exercise_01\data\D.txt'
     poses = load_camera_poses(poses_filepath) #(x,y) np matrix
 
     # define 3D corner positions
@@ -88,7 +88,11 @@ def main():
     with open(K_matrix_filepath, 'r') as file:
         
         K_matrix = np.genfromtxt(file)
-        
+    
+    #loading distortions
+
+    with open(D_filepath,'r' ) as file:
+        D = np.genfromtxt(file)
     
 
     # load one image with a given index
@@ -107,42 +111,40 @@ def main():
 
 
         # transform 3d points from world to current camera pose
-        world_xyz = xyzcoords
 
-        camera_xyz = np.zeros((54,3))
-        pixel_xyz = np.zeros((54,2))
-        cube_camera_xyz = np.zeros((8,3))
-        cube_pixel_xyz = np.zeros((8,2))
         copy = gray_image.copy()
-        for i, coords in enumerate(world_xyz):
-            world_to_camera_to_pixel = np.transpose(K_matrix@matrix_transform@np.transpose(coords))
-        
-            camera_xyz[i] = world_to_camera_to_pixel
-            pixel_xyz[i] = np.array([camera_xyz[i][0]/camera_xyz[i][2],camera_xyz[i][1]/camera_xyz[i][2]])
-        
+        uo = K_matrix[0,2]; vo = K_matrix[1,2]; 
+        pixel_xyz = project_points(xyzcoords,matrix_transform,K_matrix,D)
         cubexyz = cube(0.08,0.08,0.08,0)
-        
-        for i,coords in enumerate(cubexyz):
-            cube_world_to_camera_to_pixel = np.transpose(K_matrix@matrix_transform@np.transpose(coords))
-        
-            cube_camera_xyz[i] = cube_world_to_camera_to_pixel
-            cube_pixel_xyz[i] = np.array([cube_camera_xyz[i][0]/cube_camera_xyz[i][2],cube_camera_xyz[i][1]/cube_camera_xyz[i][2]])
-    
-        cube_pixel_xyz = np.round(cube_pixel_xyz).astype(np.int32) 
-
         for i in range(54):
             center = tuple(np.round(pixel_xyz[i]).astype(int))
         
             copy = cv2.circle(copy, center, 5, (0, 0, 255), 2)
+        cube_pixel_xyz = project_points(cubexyz,matrix_transform,K_matrix,D)
+
+        cube_pixel_xyz = np.round(cube_pixel_xyz).astype(np.int32) 
+
+   
 
 
         copy = draw_cube(cube_pixel_xyz,copy)
 
-   
-        cv2.imshow("Cube Overlay", copy)
-        key = cv2.waitKey(33) 
+        distorted_image = gray_image
+      
+        undistorted_image = undistort_image(distorted_image,K_matrix,D)
+        print(np.shape(undistorted_image))
+        cv2.imshow('undistortedvideo',undistorted_image)
+        key = cv2.waitKey(3) 
         if key == 27: 
-            break
+             break
+        # cv2.imshow('distorteddvideo',distorted_image)
+        # key = cv2.waitKey(3) 
+        # if key == 27: 
+        #      break
+        # cv2.imshow("Cube Overlay", copy)
+        # key = cv2.waitKey(3) 
+        # if key == 27: 
+        #     break
 
     # undistort image with bilinear interpolation
     """ Remove this comment if you have completed the code until here
@@ -169,37 +171,6 @@ def main():
     plt.show()
     """
 
-    # calculate the cube points to then draw the image
-    # TODO: Your code here
-    
-    # Plot the cube
-    """ Remove this comment if you have completed the code until here
-    plt.clf()
-    plt.close()
-    plt.imshow(img_undistorted, cmap='gray')
-
-    lw = 3
-
-    # base layer of the cube
-    plt.plot(cube_pts[[1, 3, 7, 5, 1], 0],
-             cube_pts[[1, 3, 7, 5, 1], 1],
-             'r-',
-             linewidth=lw)
-
-    # top layer of the cube
-    plt.plot(cube_pts[[0, 2, 6, 4, 0], 0],
-             cube_pts[[0, 2, 6, 4, 0], 1],
-             'r-',
-             linewidth=lw)
-
-    # vertical lines
-    plt.plot(cube_pts[[0, 1], 0], cube_pts[[0, 1], 1], 'r-', linewidth=lw)
-    plt.plot(cube_pts[[2, 3], 0], cube_pts[[2, 3], 1], 'r-', linewidth=lw)
-    plt.plot(cube_pts[[4, 5], 0], cube_pts[[4, 5], 1], 'r-', linewidth=lw)
-    plt.plot(cube_pts[[6, 7], 0], cube_pts[[6, 7], 1], 'r-', linewidth=lw)
-
-    plt.show()
-    """
 
 
 if __name__ == "__main__":
